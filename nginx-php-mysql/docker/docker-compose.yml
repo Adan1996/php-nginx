@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  php_nginx:
+    build:
+      context: ./php7.4-nginx
+    container_name: 'php_nginx'
+    restart: 'always'
+    volumes:
+      - ./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+      - ../src:/var/www/public
+    expose:
+      - 9000
+
+  server_nginx:
+    build:
+      context: ./nginx
+    container_name: 'server_nginx'
+    restart: 'always'
+    volumes:
+      - ../src:/var/www/public
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/sites/:/etc/nginx/sites-available
+      - ./nginx/conf.d/:/etc/nginx/conf.d
+    ports:
+      - "5009:80"
+    depends_on:
+      - php_nginx
+
+  mysql_nginx:
+    build:
+      context: ./database
+    container_name: 'mysql_nginx'
+    volumes:
+      - ./database/mysql:/var/lib/mysql
+    restart: 'always'
+    environment:
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=db
+      - MYSQL_PASSWORD=db
+      - MYSQL_ROOT_PASSWORD=#root#
+
+# networks:
+#   default:
+#     external:
+#       name: prod_network
